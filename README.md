@@ -1,1 +1,1 @@
-# ya-txt-kappa-team
+# Документация проекта находится [здесь](https://gitlab.com/nlchar/ya-txt-kappa-team/-/wikis/pages).

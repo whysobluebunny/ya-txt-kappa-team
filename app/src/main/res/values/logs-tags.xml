@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="logs_tags_separator">/</string>
+    <string name="logs_tag_common">yatxtapp</string>
+    <string name="logs_tag_book_engine_class">BookEngine</string>
+</resources>

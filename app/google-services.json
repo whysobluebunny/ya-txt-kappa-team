@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1063395026369",
+    "firebase_url": "https://itxt-bcf98.firebaseio.com",
+    "project_id": "itxt-bcf98",
+    "storage_bucket": "itxt-bcf98.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1063395026369:android:86d1cd9e8f52483402fb40",
+        "android_client_info": {
+          "package_name": "ru.hse.ba.se.group_dynamics.kappateam.ya_txt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1063395026369-0escvqev1uabp6i35fgihk2ov6tq9jaq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrs5QFYr6qA4_ROtnmIpxo7_GrFhhgWXc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1063395026369-0escvqev1uabp6i35fgihk2ov6tq9jaq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
