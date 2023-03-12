@@ -1,1 +1,1 @@
-# Документация проекта находится [здесь](https://gitlab.com/nlchar/ya-txt-kappa-team/-/wikis/pages).
+# Документация проекта находится [здесь](https://github.com/whysobluebunny/ya-txt-kappa-team/wiki).
