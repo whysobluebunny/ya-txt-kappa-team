@@ -37,6 +37,9 @@ import java.util.UUID;
 
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.R;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.BookRepository;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.ServiceLocator;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.auth.AuthRepository;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.auth.AuthUser;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.resources.LocationHandler;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.resources.Resources;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.views.BookRecyclerAdapter;
@@ -53,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final String id = "19f6c76d-08b3-47b8-98cc-93b6d366d2b4";//UUID.randomUUID().toString();
 
-    private FirebaseAuth mAuth;
+    private final AuthRepository auth = ServiceLocator.getInstance().getAuthRepository();
 
     private StorageReference mStorageRef;
 
@@ -63,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mAuth = FirebaseAuth.getInstance();
         mStorageRef = FirebaseStorage.getInstance().getReference();
         CheckUserAuthorization();
 
@@ -76,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         LocationHandler appLocationManager = new LocationHandler(MainActivity.this, Resources.INSTANCE.geoLocation);
         Resources.INSTANCE.createLightResource(this);
 
-        FirebaseUser user = mAuth.getCurrentUser();
+        AuthUser user = auth.getCurrentUser();
         if (user != null) {
             ArrayList<String> idBooks = null;
             try {
@@ -158,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void CheckUserAuthorization() {
-        FirebaseUser user = mAuth.getCurrentUser();
+        AuthUser user = auth.getCurrentUser();
         if (user == null) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
