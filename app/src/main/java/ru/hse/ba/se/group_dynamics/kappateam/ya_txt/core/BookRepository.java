@@ -16,6 +16,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,9 +24,12 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -35,6 +39,7 @@ import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.StaticNode;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.TriggerNode;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.utils.RuntimeTypeAdapterFactory;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.utils.SampleBookGenerator;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.views.BookView;
 
 /**
  * Класс представляет собой репозиторий книг и предоставляет ряд операций для работы с этим репозиторием.
@@ -58,6 +63,7 @@ public class BookRepository {
 
     /**
      * Восстановить объект книги из репозитория.
+     *
      * @param id идентификатор книги
      * @return объект книги
      */
@@ -67,8 +73,38 @@ public class BookRepository {
         return parseFromJSON(readFileAsString(bookFilePath));
     }
 
+    public static void saveBookInfo(List<Map<String, Object>> info, Context context) throws IOException {
+        File bookFilePath = new File(getCreateBooksDir(context), "bookData");
+        System.out.println("entering saveBookInfo");
+        for (Map<String, Object> map : info)
+            System.out.println(map.values());
+        try (FileWriter fileWriter = new FileWriter(bookFilePath, false)) {
+            Gson gson = new GsonBuilder()
+                    .serializeSpecialFloatingPointValues()
+                    .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+            Type gsonType = new TypeToken<List<Map<String, Object>>>() {
+            }.getType();
+            String JSON = gson.toJson(info, gsonType);
+            System.out.println("FUCKME " + JSON);
+            fileWriter.write(JSON);
+        }
+    }
+
+    public static List<Map<String, Object>> getBookInfo(Context context) throws IOException {
+        File bookFilePath = new File(getCreateBooksDir(context), "bookData");
+        String content = readFileAsString(bookFilePath);
+        Gson gson = new GsonBuilder()
+                .serializeSpecialFloatingPointValues()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        Type gsonType = new TypeToken<List<Map<String, Object>>>() {
+        }.getType();
+        return gson.fromJson(content, gsonType);
+    }
+
+
     /**
      * Отдать айдишники сохраненных книг.
+     *
      * @param context контекст приложения
      * @return айдишники сохраненных книг в виде строк
      */
@@ -78,15 +114,13 @@ public class BookRepository {
         if (booksFile.length() == 0) {
             // файла не существует или он пуст
             return new ArrayList<String>();
-        }
-        else {
+        } else {
             String content = readFileAsString(booksFile);
             Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
             ArrayList unparametrized = gson.fromJson(content, ArrayList.class);
             if (unparametrized == null) {
                 throw new ParseException("Can't parse JSON.", 0);
-            }
-            else {
+            } else {
                 parametrized = new ArrayList<>(unparametrized);
             }
         }
@@ -95,12 +129,13 @@ public class BookRepository {
 
     /**
      * Добавляет книгу в список сохраненных.
-     * @param id идентификатор книги
+     *
+     * @param id      идентификатор книги
      * @param context контекст приложения
      */
     public static void addSavedBookId(String id, Context context) throws IOException, ParseException {
         File booksFile = new File(getCreateBooksDir(context), SAVED_BOOKS_FILE_NAME);
-        if(!booksFile.createNewFile()) {
+        if (!booksFile.createNewFile()) {
             ArrayList<String> current = getSavedBooksIDs(context);
             current.add(id);
             Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
@@ -108,8 +143,7 @@ public class BookRepository {
             try (FileWriter fileWriter = new FileWriter(booksFile, false)) {
                 fileWriter.write(JSON);
             }
-        }
-        else {
+        } else {
             ArrayList<String> current = new ArrayList<>();
             current.add(id);
             Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
@@ -122,25 +156,27 @@ public class BookRepository {
 
     /**
      * Удалить книгу из репозитория.
+     *
      * @param id идентификатор книги
      */
     public static void removeBookFromRepository(String id, Context context) throws IOException {
         File bookDir = new File(getCreateBooksDir(context), getHashedRepresentationOfId(id));
         File bookFilePath = new File(bookDir, BOOK_FILE_NAME);
         File progressFilePath = new File(bookDir, PROGRESS_FILE_NAME);
-        if(!progressFilePath.delete()) {
+        if (!progressFilePath.delete()) {
             throw new IOException("Progress file for the book of id " + id + " cannot be deleted.");
         }
-        if(!bookFilePath.delete()) {
+        if (!bookFilePath.delete()) {
             throw new IOException("Book contents file for the book of id " + id + " cannot be deleted.");
         }
-        if(!bookDir.delete()) {
+        if (!bookDir.delete()) {
             throw new IOException("Book folder for the book of id " + id + " cannot be deleted.");
         }
     }
 
     /**
      * Добавить в репозиторий книгу, скачав ее с сервера.
+     *
      * @param id идентификатор книги
      */
     public static void addBookFromServerToRepository(String JSON, String id, Context context) throws IOException {
@@ -155,7 +191,8 @@ public class BookRepository {
 
     /**
      * Сохранить прогресс чтения по книге.
-     * @param id идентификатор книги
+     *
+     * @param id       идентификатор книги
      * @param progress Текущий прогресс чтения по книге
      */
     public static void saveCurrentBookProgress(String id, String progress, Context context) throws IOException {
@@ -168,6 +205,7 @@ public class BookRepository {
 
     /**
      * Получит прогресс чтения по книге.
+     *
      * @param id идентификатор книги
      * @return прогресс чтения в виде строки
      */
@@ -179,6 +217,7 @@ public class BookRepository {
 
     /**
      * Есть ли у книги прогресс чтения или он пуст?
+     *
      * @param id идентификатор книги
      * @return true, если прогресс чтения есть в репозитории, false - в ином случае
      */
@@ -190,21 +229,22 @@ public class BookRepository {
 
     /**
      * Обнулить прогресс чтения книги.
+     *
      * @param id идентификатор книги
      */
     public static void resetCurrentBookProgress(String id, Context context) throws IOException {
         File bookDir = new File(getCreateBooksDir(context), getHashedRepresentationOfId(id));
         File progressFilePath = new File(bookDir, PROGRESS_FILE_NAME);
-        if(!progressFilePath.delete()) {
+        if (!progressFilePath.delete()) {
             throw new IOException("Progress file for the book of id " + id + " cannot be deleted.");
         }
-        if(!progressFilePath.createNewFile()) {
+        if (!progressFilePath.createNewFile()) {
             throw new IOException("Progress file for the book of id " + id + " already exists.");
         }
     }
 
     // получить директорию с книгами (при этом создать ее, если таковой не существует)
-    private static File getCreateBooksDir(Context context){
+    private static File getCreateBooksDir(Context context) {
         return context.getDir("books", Context.MODE_PRIVATE);
     }
 
@@ -212,16 +252,16 @@ public class BookRepository {
     private static File prepareDirForABook(String id, Context context) throws IOException {
         // создаем путь к папке с данными книги
         File bookDir = new File(getCreateBooksDir(context), getHashedRepresentationOfId(id));
-        if(!bookDir.mkdir()){
+        if (!bookDir.mkdir()) {
             throw new IOException("Directory for the book of id " + id + " already exists.");
         }
         // добавляем в папку progress_file и book
         File progressFilePath = new File(bookDir, PROGRESS_FILE_NAME);
-        if(!progressFilePath.createNewFile()) {
+        if (!progressFilePath.createNewFile()) {
             throw new IOException("Progress file for the book of id " + id + " already exists.");
         }
         File bookFilePath = new File(bookDir, BOOK_FILE_NAME);
-        if(!bookFilePath.createNewFile()) {
+        if (!bookFilePath.createNewFile()) {
             throw new IOException("Book contents file for the book of id " + id + " already exists.");
         }
 
@@ -231,7 +271,7 @@ public class BookRepository {
     // прочитать файл и вернуть содержимое в виде строки
     public static String readFileAsString(File file) throws IOException {
         StringBuilder sb = new StringBuilder();
-        try(BufferedReader buf = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+        try (BufferedReader buf = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
             String line = buf.readLine();
             while (line != null) {
                 sb.append(line);
@@ -256,7 +296,7 @@ public class BookRepository {
     }
 
     // получить безопасное для применения в качестве имени файла представление идентификатора
-    private static String getHashedRepresentationOfId(String id){
+    private static String getHashedRepresentationOfId(String id) {
         return id.replaceAll("[^a-zA-Z0-9.-]", "_") +
                 (id + id.length()).hashCode() +
                 id.length() + id.length();

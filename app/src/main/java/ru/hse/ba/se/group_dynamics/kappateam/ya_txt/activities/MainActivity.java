@@ -1,8 +1,11 @@
 package ru.hse.ba.se.group_dynamics.kappateam.ya_txt.activities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.Image;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,10 +35,12 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.R;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.Book;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.BookRepository;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.resources.LocationHandler;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.resources.Resources;
@@ -63,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (!checkConnection())
+            switchToAutonomousMode();
+
         mAuth = FirebaseAuth.getInstance();
         mStorageRef = FirebaseStorage.getInstance().getReference();
         CheckUserAuthorization();
@@ -81,12 +89,10 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<String> idBooks = null;
             try {
                 idBooks = BookRepository.getSavedBooksIDs(getApplicationContext());
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
+            } catch (IOException | ParseException e) {
                 e.printStackTrace();
             }
-
+            List<Map<String, Object>> bookData = new ArrayList<>();
             if (idBooks != null && !idBooks.isEmpty()) {
                 TextView titleView = findViewById(R.id.mybooksTitle);
                 titleView.setText("Читаю сейчас");
@@ -97,7 +103,8 @@ public class MainActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 for (QueryDocumentSnapshot document : task.getResult()) {
                                     Map<String, Object> data = document.getData();
-
+                                    System.out.println("Book loaded");
+                                    bookData.add(data);
                                     if (finalIdBooks.contains((String) data.get("id"))) {
                                         books.add(new BookView((String) data.get("title"),
                                                 (String) data.get("author"),
@@ -141,15 +148,21 @@ public class MainActivity extends AppCompatActivity {
                                             }).addOnFailureListener(exception -> {
                                                 Toast.makeText(MainActivity.this, "Упс. Что-то пошло не так",
                                                         Toast.LENGTH_SHORT).show();
+                                                System.out.println("MainActivity. 'addOnCompleteListener' failure.");
                                             });
                                         });
                                     }
                                 }
+                                try {
+                                    BookRepository.saveBookInfo(bookData, getApplicationContext());
+                                    System.out.println(BookRepository.getBookInfo(getApplicationContext()).get(0).get("title"));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+
                             }
                         });
-            }
-            else
-            {
+            } else {
                 TextView titleView = findViewById(R.id.mybooksTitle);
                 titleView.setText("Пусто...");
             }
@@ -164,6 +177,18 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         }
+    }
+
+    public boolean checkConnection() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager != null ? connectivityManager.getActiveNetworkInfo() : null;
+        return (activeNetworkInfo != null && activeNetworkInfo.isConnected());
+    }
+
+    public void switchToAutonomousMode() {
+        Intent intent = new Intent(this, AutonomousMainActivity.class);
+        startActivity(intent);
     }
 
     @Override
