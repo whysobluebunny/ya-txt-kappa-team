@@ -26,6 +26,9 @@ public enum TriggerTypeClass {
      * @param typeClass класс
      */
     TriggerTypeClass(String typeClass) {
+        if (typeClass == null){
+            typeClass = "time";
+        }
         this.typeClass = typeClass;
     }
 
