@@ -25,14 +25,18 @@ public class PersonaQuiz {
     /**
      * Предпочитаемые читателем музыкальные жанры.
      */
-    private final ArrayList<String> musicGenres;
+    private ArrayList<String> musicGenres;
 
     /**
      * Языки, которыми владеет читатель.
      */
-    private final ArrayList<String> spokenLanguages;
+    private ArrayList<String> spokenLanguages;
 
-    public PersonaQuiz(String homeTown, String gender, String age, ArrayList<String> musicGenres, ArrayList<String> spokenLanguages) {
+    public PersonaQuiz(String homeTown,
+                       String gender,
+                       String age,
+                       ArrayList<String> musicGenres,
+                       ArrayList<String> spokenLanguages) {
         this.homeTown = homeTown;
         this.gender = gender;
         this.age = age;
@@ -44,27 +48,31 @@ public class PersonaQuiz {
      * @return родной город читателя
      */
     public String getHomeTown() {
-        return homeTown;
+        return homeTown != null ? homeTown : "Moscow";
     }
 
     /**
      * @return гендер читателя
      */
     public String getGender() {
-        return gender;
+        return gender != null ? gender : "Man";
     }
 
     /**
      * @return возраст читателя
      */
     public String getAge() {
-        return age;
+        return age != null ? gender : "18";
     }
 
     /**
      * @return предпочтительные муз. жанры читателя
      */
     public ArrayList<String> getMusicGenres() {
+        if (musicGenres == null || musicGenres.isEmpty()){
+            musicGenres = new ArrayList<>();
+            musicGenres.add("Rock");
+        }
         return musicGenres;
     }
 
@@ -72,6 +80,10 @@ public class PersonaQuiz {
      * @return языки, которыми владеет читатель
      */
     public ArrayList<String> getSpokenLanguages() {
+        if (spokenLanguages == null || spokenLanguages.isEmpty()){
+            spokenLanguages = new ArrayList<>();
+            spokenLanguages.add("Russian");
+        }
         return spokenLanguages;
     }
 }

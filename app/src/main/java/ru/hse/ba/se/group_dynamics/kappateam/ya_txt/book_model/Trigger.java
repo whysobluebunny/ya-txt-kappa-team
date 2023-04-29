@@ -75,6 +75,7 @@ public class Trigger {
      * @return причина отработки триггера
      */
     public String getTriggerReason() {
+
         switch (triggerType.getTypeClass()){
             case WEATHER:
                 switch (triggerType) {
@@ -97,7 +98,7 @@ public class Trigger {
                     case WEATHER_TEMP_LOWER:
                         return "температура ниже " + triggerData;
                     default:
-                        return "";
+                        return "всё как всегда, погода не поменялась";
                 }
             case EXCHANGE_RATE:
                 switch (triggerType) {
@@ -114,7 +115,7 @@ public class Trigger {
                     case EXRATE_RUB_USD_INCREASED_LAST_DAY:
                         return "курс рубля вырос за сутки";
                     default:
-                        return "";
+                        return "всё как всегда, рубль стабилен";
                 }
             case TIME:
                 switch (triggerType) {
@@ -163,7 +164,7 @@ public class Trigger {
                     case TIME_WORKDAY:
                         return "сегодня будний день";
                     default:
-                        return "";
+                        return "времени не существует";
                 }
             case GEO:
                 switch (triggerType) {
@@ -174,7 +175,7 @@ public class Trigger {
                     case GEO_NEAR_LOCATION:
                         return "близость к таинственной точке на карте";
                     default:
-                        return "";
+                        return "сложно сказать, где вы находитесь";
                 }
             case LIGHT:
                 switch (triggerType) {
@@ -183,7 +184,7 @@ public class Trigger {
                     case LIGHT_LIGHT:
                         return "вокруг светло";
                     default:
-                        return "";
+                        return "сложно понять, светло вокруг или темно";
                 }
             case TESTING:
                 switch (triggerType) {
