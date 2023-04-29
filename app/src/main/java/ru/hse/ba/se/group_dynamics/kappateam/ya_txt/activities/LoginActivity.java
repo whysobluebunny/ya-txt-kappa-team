@@ -35,10 +35,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.R;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.ServiceLocator;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.auth.AuthException;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.auth.AuthRepository;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.auth.EmailPasswordAuth;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.auth.firebase.FirebaseCredentialsAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
+    private final AuthRepository auth = ServiceLocator.getInstance().getAuthRepository();
 
     private CallbackManager mCallbackManager;
 
@@ -46,7 +51,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        mAuth = FirebaseAuth.getInstance();
 
         getHashKey();
         mCallbackManager = CallbackManager.Factory.create();
@@ -97,34 +101,40 @@ public class LoginActivity extends AppCompatActivity {
 
     private void handleFacebookAccessToken(AccessToken token) {
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        Intent intent = new Intent(this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Авторзация не удалась :(",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    private void signIn(String email, String password) {
-        if (email != null && !email.isEmpty() && password != null && !password.isEmpty()) {
-            mAuth.signInWithEmailAndPassword(email, password)
+        try {
+            auth.login(new FirebaseCredentialsAuth(credential))
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
                             Intent intent = new Intent(this, MainActivity.class);
                             startActivity(intent);
                             finish();
                         } else {
-                            Toast.makeText(LoginActivity.this, "Не удалось вас авторизовать :(",
+                            Toast.makeText(LoginActivity.this, "Авторзация не удалась :(",
                                     Toast.LENGTH_SHORT).show();
                         }
                     });
-        } else {
-            Toast.makeText(LoginActivity.this, "Пустые данные :(",
+        } catch (AuthException e) {
+            Toast.makeText(LoginActivity.this, "Авторзация не удалась :(",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void signIn(String email, String password) {
+        try {
+            auth.login(new EmailPasswordAuth(email, password)).addOnCompleteListener(this, task -> {
+                if (!task.isSuccessful()) {
+                    Toast.makeText(LoginActivity.this,
+                            "Авторизация не удалась :(\nОшибка: " + task.getException().getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+                finishAffinity();
+            });
+
+        } catch (AuthException e) {
+            Toast.makeText(LoginActivity.this, "Пустые данные :(\n"+e.getMessage(),
                     Toast.LENGTH_SHORT).show();
         }
     }
