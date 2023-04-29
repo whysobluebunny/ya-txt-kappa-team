@@ -74,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
         if (!checkConnection())
             switchToAutonomousMode();
 
-        mAuth = FirebaseAuth.getInstance();
         mStorageRef = FirebaseStorage.getInstance().getReference();
         CheckUserAuthorization();
 
