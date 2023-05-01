@@ -10,4 +10,11 @@ class BookEngineTest {
     void loadData() {
         System.out.println("Hi");
     }
+
+    // TODO: написать тесты
+    @Test
+    void testExecutableNode() {
+
+
+    }
 }

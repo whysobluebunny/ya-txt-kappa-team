@@ -19,6 +19,7 @@ import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.R;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.Book;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.BookRepository;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.engines.BookEngine;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.executor.JavaScriptExecutor;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.interfaces.IHtmlView;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.interfaces.IHtmlViewEventsHandler;
 
@@ -43,12 +44,17 @@ public class ReadActivity extends AppCompatActivity implements IHtmlView {
     private class JavaScriptInterface {
         @JavascriptInterface
         public void onBookOpen() {
-            eventsHandler.onBookOpen(ReadActivity.this, book.getBookId());
+            ReadActivity.this.eventsHandler.onBookOpen(ReadActivity.this, book.getBookId());
         }
 
         @JavascriptInterface
         public void onTriggerNodeAppear(String id) {
             ReadActivity.this.eventsHandler.onTriggerNodeAppearance(ReadActivity.this, id);
+        }
+
+        @JavascriptInterface
+        public void onExecutableNodeAppear(String id) {
+            ReadActivity.this.eventsHandler.onExecutableNodeAppearance(ReadActivity.this, id);
         }
 
         @JavascriptInterface
@@ -91,7 +97,11 @@ public class ReadActivity extends AppCompatActivity implements IHtmlView {
         }
         // назначаем движок книги обработчиком событий
         try {
-            eventsHandler = new BookEngine(getApplicationContext(), book);
+            eventsHandler = new BookEngine(
+                    getApplicationContext(),
+                    book,
+                    new JavaScriptExecutor(null)
+            );
         }
         catch (Exception e) {
             Log.e("ReadActivity","[cons] Error occurred while instantiating the book engine.", e);
@@ -161,6 +171,12 @@ public class ReadActivity extends AppCompatActivity implements IHtmlView {
     @Override
     public void replaceTriggerNodeBlock(String nodeId, String html) {
         callJsFunction(String.format("replaceTriggerNodeBlock('%s', '%s')", nodeId, html));
+    }
+
+    // TODO: написать фронт
+    @Override
+    public void replaceExecutableNodeBlock(String nodeId, String html) {
+        callJsFunction(String.format("replaceExecutableNodeBlock('%s', '%s')", nodeId, html));
     }
 
     /**

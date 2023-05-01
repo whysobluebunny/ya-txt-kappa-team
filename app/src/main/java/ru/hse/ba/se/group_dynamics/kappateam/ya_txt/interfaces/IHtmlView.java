@@ -18,6 +18,13 @@ public interface IHtmlView {
     void replaceTriggerNodeBlock(String nodeId, String html);
 
     /**
+     * Заменить исполняемую ноду новым содержимым
+     * @param nodeId id исполняемой ноды
+     * @param html новое содержимое
+     */
+    void replaceExecutableNodeBlock(String nodeId, String html);
+
+    /**
      * Заменить переменную вычисленным значением.
      * @param varId идентификатор переменной
      * @param html вычисленное значение

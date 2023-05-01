@@ -1,5 +1,7 @@
 package ru.hse.ba.se.group_dynamics.kappateam.ya_txt.interfaces;
 
+import java.util.Optional;
+
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.Node;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.Variable;
 
@@ -27,6 +29,8 @@ public interface IBookContentsProvider {
      * @return нода
      */
     Node getNodeById(String id);
+
+    Optional<Node> findNodeById(String id);
 
     /**
      * Получить переменную по ее идентификатору.
