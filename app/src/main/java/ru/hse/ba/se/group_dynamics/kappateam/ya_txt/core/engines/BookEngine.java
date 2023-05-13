@@ -1,7 +1,10 @@
 package ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.engines;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,14 +12,18 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.ExecutableNode;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.Node;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.StaticNode;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.Trigger;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.TriggerNode;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.Variable;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.BookRepository;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.executor.Executor;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.executor.JavaScriptExecutor;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.engines.trigger_engines.TriggerEngine;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.engines.variable_engines.VariableEngine;
+import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.executor.NonExecutableCodeException;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.interfaces.IBookContentsProvider;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.interfaces.IHtmlView;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.interfaces.IHtmlViewEventsHandler;
@@ -39,12 +46,14 @@ public class BookEngine implements IHtmlViewEventsHandler {
     /**
      * Контекст приложения
      */
-    private Context _context;
+    private final Context _context;
 
     /**
      * Контент провайдер книги
      */
-    private IBookContentsProvider _contentsProvider;
+    private final IBookContentsProvider _contentsProvider;
+
+    private final Executor nodeExecutor;
 
     /**
      * Конструктор класса
@@ -52,12 +61,15 @@ public class BookEngine implements IHtmlViewEventsHandler {
      * @param context          контекст приложения
      * @param contentsProvider провайдер контента книги
      */
-    public BookEngine(Context context, IBookContentsProvider contentsProvider) throws IllegalArgumentException {
+    public BookEngine(Context context,
+                      IBookContentsProvider contentsProvider,
+                      Executor nodeExecutor) throws IllegalArgumentException {
         if (context == null || contentsProvider == null)
             Log.e(TAG, "[cons] Argument can't be null.", new IllegalArgumentException("Argument can't be null"));
 
         this._context = context;
         this._contentsProvider = contentsProvider;
+        this.nodeExecutor = nodeExecutor;
     }
 
     /**
@@ -148,6 +160,28 @@ public class BookEngine implements IHtmlViewEventsHandler {
         }
     }
 
+    @Override
+    public void onExecutableNodeAppearance(IHtmlView callbackObject, String nodeId) {
+        String funcName = "onExecutableNodeAppearance";
+        try {
+            ExecutableNode node = (ExecutableNode) _contentsProvider.getNodeById(nodeId);
+
+            String nextNodeId = nodeExecutor.execute(node.getCode());
+            if (nextNodeId == null) {
+                throw new NonExecutableCodeException();
+            }
+            Log.i(TAG, "[" + funcName + "] node id after execution=" + nextNodeId);
+            Node nextNode = _contentsProvider.getNodeById(nodeId);
+
+            callbackObject.replaceExecutableNodeBlock(nodeId, newDivBlock("reason-block", null, "выполнился код") + loadNotes(nextNode));
+
+        } catch (Exception ex) {
+            Log.e(TAG, "[" + funcName + "] Error occurred while handling the trigger node.", ex);
+            callbackObject.reportErrorState();
+        }
+    }
+
+
     /**
      * Обработчик события достижения (появления на экране) переменной
      * @param callbackObject обьект показа HTML кода
@@ -219,6 +253,12 @@ public class BookEngine implements IHtmlViewEventsHandler {
             String html = newTriggerNodeDivBlock(triggerNode.getId());
             content.append(html);
         }
+        // загрузка исполняемой ноды
+        else if (root instanceof ExecutableNode) {
+            ExecutableNode executableNode = (ExecutableNode) root;
+            String html = newExecutableNodeDivBlock(executableNode.getId());
+            content.append(html);
+        }
 
         return content.toString();
     }
@@ -249,13 +289,22 @@ public class BookEngine implements IHtmlViewEventsHandler {
     }
 
     /**
-     * Создает и возврашает DIV блок для триггерных нод
+     * Создает и возвращает DIV блок для триггерной ноды
      *
      * @param divID ID ноды
-     * @return DIV блок для триггерных нод
+     * @return DIV блок для триггерной ноды
      */
     private String newTriggerNodeDivBlock(String divID) {
         return newDivBlock("trigger_node_block", divID, "");
+    }
+
+    /**
+     * Создает и возвращает DIV блок для исполняемой ноды
+     * @param divID id ноды
+     * @return DIV блок для исполняемой ноды
+     */
+    private String newExecutableNodeDivBlock(String divID) {
+        return newDivBlock("executable_node_block", divID, "");
     }
 
     /**

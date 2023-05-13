@@ -1,8 +1,12 @@
 package ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model;
 
+import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 import java.util.HashMap;
+import java.util.Optional;
 
 import lombok.ToString;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.interfaces.IBookContentsProvider;
@@ -109,6 +113,14 @@ public class Book implements IBookContentsProvider {
 
         Log.d(TAG, "[getNodeById] The book has the node with the provided id " + node.toString() + ", which is returned.");
         return node;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @Override
+    public Optional<Node> findNodeById(String id) {
+        checkNodes(this.nodes);
+        checkId(id);
+        return Optional.ofNullable(this.nodes.get(id));
     }
 
     /**

@@ -31,6 +31,13 @@ public interface IHtmlViewEventsHandler {
     void onTriggerNodeAppearance(IHtmlView callbackObject, String nodeId);
 
     /**
+     * Обработчик события достижения (появления на экране) исполняемой ноды
+     * @param callbackObject обьект показа HTML кода
+     * @param nodeId ID исполняемой ноды
+     */
+    void onExecutableNodeAppearance(IHtmlView callbackObject, String nodeId);
+
+    /**
      * Обработчик события достижения (появления на экране) переменной
      * @param callbackObject обьект показа HTML кода
      * @param varId ID переменной
