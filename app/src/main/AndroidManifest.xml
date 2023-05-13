@@ -43,6 +43,7 @@
             android:windowSoftInputMode="adjustPan"
             tools:ignore="LockedOrientationActivity"/>
         <activity
+            android:exported="true"
             android:name=".activities.SplashActivity"
             android:theme="@style/SplashScreenTheme">
             <intent-filter>
