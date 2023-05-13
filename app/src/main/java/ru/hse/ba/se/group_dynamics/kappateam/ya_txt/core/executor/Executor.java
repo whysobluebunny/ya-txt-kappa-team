@@ -8,5 +8,5 @@ public abstract class Executor {
         this.nextExecutor = nextExecutor;
     }
 
-    public abstract String execute(String code);
+    public abstract Object execute(String code);
 }

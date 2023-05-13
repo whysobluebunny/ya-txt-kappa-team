@@ -20,7 +20,6 @@ import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.TriggerNode;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.book_model.Variable;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.BookRepository;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.executor.Executor;
-import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.executor.JavaScriptExecutor;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.engines.trigger_engines.TriggerEngine;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.engines.variable_engines.VariableEngine;
 import ru.hse.ba.se.group_dynamics.kappateam.ya_txt.core.executor.NonExecutableCodeException;
@@ -166,12 +165,13 @@ public class BookEngine implements IHtmlViewEventsHandler {
         try {
             ExecutableNode node = (ExecutableNode) _contentsProvider.getNodeById(nodeId);
 
-            String nextNodeId = nodeExecutor.execute(node.getCode());
-            if (nextNodeId == null) {
+            Object executed = nodeExecutor.execute(node.getCode());
+            if (!(executed instanceof String)) {
                 throw new NonExecutableCodeException();
             }
+            String nextNodeId = (String) executed;
             Log.i(TAG, "[" + funcName + "] node id after execution=" + nextNodeId);
-            Node nextNode = _contentsProvider.getNodeById(nodeId);
+            Node nextNode = _contentsProvider.getNodeById(nextNodeId);
 
             callbackObject.replaceExecutableNodeBlock(nodeId, newDivBlock("reason-block", null, "выполнился код") + loadNotes(nextNode));
 
