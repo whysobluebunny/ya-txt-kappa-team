@@ -17,10 +17,10 @@ public class JavaScriptExecutor extends Executor {
     }
 
     @Override
-    public String execute(String code) {
+    public Object execute(String code) {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
         try {
-            return (String) engine.eval(code);
+            return engine.eval(code);
 
         } catch (ScriptException ex) {
             if (nextExecutor != null)
